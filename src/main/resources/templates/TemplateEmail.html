@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Reseta estilos para e-mails */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Contêiner da tabela */
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f7f7f7;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        /* Célula da imagem e do texto sobreposto */
+        .background-img {
+            display: none; /* Esconde a imagem por padrão */
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+        }
+
+        .overlay-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* Texto sobreposto */
+        .text-overlay {
+            position: absolute;
+            top: 50%; /* Fixa verticalmente ao centro da imagem */
+            left: 15%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            color: white;
+            max-width: 250px;
+            text-align: center;
+            width: 80%;
+        }
+
+        /* Tamanhos de fonte */
+        h1 {
+            font-size: 34px;
+            margin-bottom: 5px;
+        }
+
+        p {
+            font-size: 80px;
+            line-height: 1.5;
+            font-weight: bolder;
+            text-align: center;
+        }
+
+        /* Ajustes para telas pequenas */
+        @media only screen and (max-width: 600px) {
+            .background-img {
+                display: block; /* Exibe a imagem apenas em telas menores */
+            }
+
+            .text-overlay {
+                top: 50%; /* Fixa a posição verticalmente no meio da imagem */
+                left: 15%;
+                transform: translateY(-50%);
+                max-width: 35%; /* Permite o texto se ajustar em telas menores */
+                width: 100%; /* Garantir que ocupe a largura da tela */
+            }
+
+            h1 {
+                font-size: 25px;
+            }
+
+            p {
+                font-size: 25px;
+                text-align: center;
+            }
+        }
+
+        /* Ajustes para telas maiores (não mobile) */
+        @media only screen and (min-width: 601px) {
+            .background-img {
+                display: block; /* Exibe a imagem em telas maiores também */
+            }
+
+            .text-overlay {
+                top: 45%; /* Ajusta a posição vertical do texto */
+                left: 10%; /* Ajusta a posição horizontal do texto */
+                transform: translateY(-40%); /* Ajusta a centralização vertical */
+                max-width: 40%; /* Limita a largura do texto */
+            }
+
+            h1 {
+                font-size: 50px;
+            }
+
+            p {
+                font-size: 70px;
+                text-align: center; /* Alinha o texto à esquerda em telas maiores */
+            }
+        }
+
+    </style>
+</head>
+<body>
+<table class="container" role="presentation" cellpadding="0" cellspacing="0">
+    <tr>
+        <td>
+            <div class="overlay-container">
+                <img src="https://i.ibb.co/FDwsycj/Meu-nibus-1.png" alt="Background" class="background-img">
+                <div class="text-overlay">
+                    <h1>SENHA</h1>
+                    <p th:text="${mensagem}">4A5s</p>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -23,11 +23,12 @@ import org.springframework.web.bind.annotation.*;
 import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Aluno")
-//@SecurityRequirement(name = SecurityConfigurations.SECURITY)
+@SecurityRequirement(name = SecurityConfigurations.SECURITY)
 public class AuthenticationController {
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -43,17 +44,24 @@ public class AuthenticationController {
     public ResponseEntity login(@RequestBody @Valid AuthenticationDTO data) {
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(),data.senha());
         var auth = authenticationManager.authenticate(usernamePassword);
-       // Usuario user = (Usuario) auth.getPrincipal();
-        var token = tokenService.gerarToken((Usuario) auth.getPrincipal());
+        Usuario user = (Usuario) auth.getPrincipal();
 
-        return ResponseEntity.ok(new LoginResponseDTO(token));
+        BCryptPasswordEncoder econder = new BCryptPasswordEncoder();
+
+        if(econder.matches(data.senha(),user.getSenhaTemporaria())){
+
+            return ResponseEntity.ok(tokenService.gerarTokenRedefinirSenha(user));
+
+        }else {
+            return ResponseEntity.ok(tokenService.obterToken(user));
+        }
 
     }
 
     @PostMapping("/aluno/cadastro")
     public ResponseEntity cadastro(@RequestBody @Valid CadAlunoDTO data){
         if(this.userRepository.findByUsuEmail(data.usuEmail()) != null) return ResponseEntity.badRequest().build();
-        String senhaTemporaria = this.gerarSenhaTemporaria();
+        String senhaTemporaria = UUID.randomUUID().toString().substring(0, 4);
         LocalDateTime validade = LocalDateTime.now().plusDays(2);//Gera o tempo de Validade da Senha temporária
 
         //Encriptação da Senha Temporária
@@ -74,26 +82,14 @@ public class AuthenticationController {
 
 
     private void enviarEmailComSenhaTemporaria(String destinatario, String senhaTemporaria) {
-        String assunto  = "Sua senha temporária";
-        String texto ="Sua senha temporária é: " + senhaTemporaria + ". Ela expira em 2 dias.";
+        String assunto  = "Primeiro Acesso";
+        String texto = senhaTemporaria;
 
         emailService.enviarEmail(destinatario,assunto,texto);
 
     }
-
-    private String gerarSenhaTemporaria() {
-        String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        int tamanhoSenha = 4;
-        SecureRandom random = new SecureRandom();
-        StringBuilder senhaTemporaria = new StringBuilder(tamanhoSenha);
-
-        for (int i = 0; i < tamanhoSenha; i++) {
-            int index = random.nextInt(caracteres.length());
-            senhaTemporaria.append(caracteres.charAt(index));
-        }
-        return senhaTemporaria.toString();
-    }
-   /* @PostMapping("/aluno/cadastro")
+/*
+     @PostMapping("/aluno/cadastro")
     public ResponseEntity cadastro(@RequestBody @Valid CadAlunoDTO data){
         if(this.userRepository.findByUsuEmail(data.usuEmail()) != null) return ResponseEntity.badRequest().build();
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.UsuSenha());

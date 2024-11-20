@@ -1,4 +1,10 @@
 package ifs.meuonibus.Dto;
 
-public record LoginResponseDTO(String token) {
+import lombok.Builder;
+
+@Builder
+
+public record LoginResponseDTO(String token,String refreshToken) {
+
+
 }
