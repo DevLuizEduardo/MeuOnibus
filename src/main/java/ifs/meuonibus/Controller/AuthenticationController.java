@@ -1,6 +1,7 @@
 package ifs.meuonibus.Controller;
 
 import ifs.meuonibus.Dto.AuthenticationDTO;
+import ifs.meuonibus.Dto.LoginResetPasswordDTO;
 import ifs.meuonibus.Dto.LoginResponseDTO;
 import ifs.meuonibus.Form.CadAlunoDTO;
 import ifs.meuonibus.Infra.Security.SecurityConfigurations;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,7 +29,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
-@Tag(name = "Aluno")
+@Tag(name = "Cadastro e Login dos Usuários")
 @SecurityRequirement(name = SecurityConfigurations.SECURITY)
 public class AuthenticationController {
     @Autowired
@@ -49,8 +51,12 @@ public class AuthenticationController {
         BCryptPasswordEncoder econder = new BCryptPasswordEncoder();
 
         if(econder.matches(data.senha(),user.getSenhaTemporaria())){
+            if (user.getSenhaTempExpiracao().isBefore(LocalDateTime.now())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha temporária expirada.");
+            }
 
-            return ResponseEntity.ok(tokenService.gerarTokenRedefinirSenha(user));
+            var token = tokenService.gerarTokenRedefinirSenha(user);
+            return ResponseEntity.ok(new LoginResetPasswordDTO(token));
 
         }else {
             return ResponseEntity.ok(tokenService.obterToken(user));
@@ -60,7 +66,7 @@ public class AuthenticationController {
 
     @PostMapping("/aluno/cadastro")
     public ResponseEntity cadastro(@RequestBody @Valid CadAlunoDTO data){
-        if(this.userRepository.findByUsuEmail(data.usuEmail()) != null) return ResponseEntity.badRequest().build();
+        if(this.userRepository.findByUsuEmail(data.usuEmail()) != null) return ResponseEntity.badRequest().body("Usuário já Existe");
         String senhaTemporaria = UUID.randomUUID().toString().substring(0, 4);
         LocalDateTime validade = LocalDateTime.now().plusDays(2);//Gera o tempo de Validade da Senha temporária
 
