@@ -39,6 +39,9 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST,"/auth/aluno/login").permitAll()
                         .requestMatchers(HttpMethod.POST,"/auth/aluno/cadastro").permitAll()
                         .requestMatchers("/v3/api-docs/**","swagger-ui/**","swagger-ui/index.html").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/auth/refresh-token").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST,"/auth/aluno/reset-senhatemp").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/auth/aluno/redefinir-senha").hasRole("USER")
                         .anyRequest().authenticated()
 
                 )

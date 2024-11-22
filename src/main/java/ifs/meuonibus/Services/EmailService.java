@@ -26,14 +26,14 @@ public class EmailService {
    @Value("${spring.mail.username}")
    private String remetente;
 
-    public String enviarEmail(String destinatario, String assunto, String texto) {
+    public String enviarEmail(String destinatario,String texto) {
         try{
             MimeMessage email = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(email, true);
 
 
             helper.setTo(destinatario);
-            helper.setSubject(assunto);
+            helper.setSubject("Senha Temporária");
             helper.setFrom("App Meu Ônibus<"+remetente+">");
 
             Context context = new Context();

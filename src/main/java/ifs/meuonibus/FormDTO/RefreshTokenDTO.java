@@ -1,4 +1,4 @@
-package ifs.meuonibus.Dto;
+package ifs.meuonibus.FormDTO;
 
 import java.io.Serializable;
 
