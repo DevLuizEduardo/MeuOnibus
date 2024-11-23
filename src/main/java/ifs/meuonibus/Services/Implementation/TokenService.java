@@ -1,4 +1,4 @@
-package ifs.meuonibus.Services;
+package ifs.meuonibus.Services.Implementation;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -7,9 +7,9 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import ifs.meuonibus.Dto.LoginResponseDTO;
+import ifs.meuonibus.Dto.TokenResetPasswordDTO;
+import ifs.meuonibus.Exceptions.TokenInvalidException;
 import ifs.meuonibus.Models.User.Usuario;
-import ifs.meuonibus.Repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -27,10 +27,9 @@ public class TokenService {
     private int tempExpirationToken;
     @Value("${auth.jwt.refresh-token.expiration}")
     private int tempExpirationRefreshToken;
-    @Autowired
-    UserRepository userRepository;
 
 
+//Retorna o Token e o RefreshToken após o usuário fazer o login
     public LoginResponseDTO obterToken (Usuario usuario) {
 
         return LoginResponseDTO.builder()
@@ -39,7 +38,9 @@ public class TokenService {
                 .build();
 
     }
-    public String gerarToken(Usuario usuario) {
+
+    //Gera a chave de acesso Token
+    private String gerarToken(Usuario usuario) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secretToken);
             String token = JWT.create()
@@ -54,7 +55,8 @@ public class TokenService {
         }
     }
 
-        public String gerarRefreshToken(Usuario usuario) {
+    //Gera o RefreshToken para renovar a chave de acesso Token
+        private String gerarRefreshToken(Usuario usuario) {
             try {
                 Algorithm algorithm = Algorithm.HMAC256(secretRefreshToken);
                 String token = JWT.create()
@@ -70,7 +72,9 @@ public class TokenService {
 
             }
         }
-    public String gerarTokenRedefinirSenha(Usuario usuario) {
+
+    //Gera um Token no primeiro acesso com a Claim = "resetPassword" para redefinir a senha
+    public TokenResetPasswordDTO gerarTokenRedefinirSenha(Usuario usuario) {
 
         try{
 
@@ -81,7 +85,7 @@ public class TokenService {
                     .withClaim("resetPassword", true)
                     .withExpiresAt(getExpirationDate(tempExpirationToken))
                     .sign(algorithm);
-            return token;
+            return new TokenResetPasswordDTO(token);
         } catch (JWTCreationException e) {
             throw new RuntimeException("Erro ao gerar o token",e);
 
@@ -91,6 +95,7 @@ public class TokenService {
 
     }
 
+    //Valida e retorna o login do usuário que está contido no Token
     public String validateToken(String token){
 
             try {
@@ -107,39 +112,41 @@ public class TokenService {
         }
 
 
+    // Verifica se a claim resetPassword está presente
     public boolean verifyResetPassword(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secretToken);
             JWTVerifier verifier = JWT.require(algorithm)
                     .withIssuer("auth_api")
-                    .withClaim("resetPassword", true) // Verifica se a claim resetPassword está presente e é true
+                    .withClaim("resetPassword", true)
                     .build();
             DecodedJWT decodedJWT = verifier.verify(token);
 
-
-
             return decodedJWT.getClaim("resetPassword").asBoolean();
         } catch (JWTVerificationException e) {
-            return false; // Token inválido ou sem a claim resetPassword
+            throw new TokenInvalidException("Token não Autorizado."); // Token inválido ou sem a claim resetPassword
         }
     }
 
-    public boolean verifyRefreshToken(String token) {
+
+
+    // Verifica se a claim refreshToken está presente
+    public void verifyRefreshToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secretRefreshToken);
             JWTVerifier verifier = JWT.require(algorithm)
                     .withIssuer("auth_api")
-                    .withClaim("refreshToken", true) // Verifica se a claim refreshToken está presente e é true
+                    .withClaim("refreshToken", true)
                     .build();
-            DecodedJWT decodedJWT = verifier.verify(token);
-            return decodedJWT.getClaim("refreshToken").asBoolean();
-        } catch (JWTVerificationException e) {
-            return false; // Token inválido ou sem a claim refreshToken
+
+            verifier.verify(token);
+
+                    } catch (JWTVerificationException e) {
+                      throw new TokenInvalidException(); // Token inválido ou sem a claim refreshToken
         }
     }
 
-
-
+    //Retorna o tempo de expiração da chave de acesso do usuário
     private Instant getExpirationDate(int expiration) {
         return LocalDateTime.now().plusHours(expiration).toInstant(ZoneOffset.of("-03:00"));
 

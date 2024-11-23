@@ -1,7 +1,7 @@
 package ifs.meuonibus.Infra.Security;
 
 import ifs.meuonibus.Repository.UserRepository;
-import ifs.meuonibus.Services.TokenService;
+import ifs.meuonibus.Services.Implementation.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
